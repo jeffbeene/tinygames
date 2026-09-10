@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>tinygames — create</title>
+    <link rel="stylesheet" href="/src/create/create.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">▚</span>
+        <span class="brand-name">tinygames</span>
+      </div>
+
+      <div class="topbar-group">
+        <label class="field">
+          <span class="field-label">Example</span>
+          <select id="examples" class="select">
+            <option value="">Load…</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="field-label">Runtime</span>
+          <select id="runtime" class="select">
+            <option value="0">Canvas harness</option>
+            <option value="1">Bare page</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="topbar-spacer"></div>
+
+      <div class="topbar-group">
+        <label class="toggle">
+          <input type="checkbox" id="autorun" checked />
+          <span>Auto-run</span>
+        </label>
+        <button id="run" class="btn" type="button" title="Re-run the preview (Ctrl+Enter)">Run</button>
+        <button id="stop" class="btn" type="button" title="Stop the running game">Stop</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="pane pane-editor">
+        <div class="pane-head">
+          <h2 class="pane-title">Source</h2>
+          <div class="pane-meta">
+            <span id="src-stat" class="stat-inline">—</span>
+          </div>
+        </div>
+        <div id="editor" class="editor-host"></div>
+        <div id="problems" class="problems" hidden></div>
+      </section>
+
+      <section class="pane pane-preview">
+        <div class="pane-head">
+          <h2 class="pane-title">Preview</h2>
+          <div class="pane-meta">
+            <select id="preview-source" class="select select-sm" title="Which build the preview runs">
+              <option value="source">run source</option>
+              <option value="shipped">run shipped</option>
+            </select>
+            <span id="preview-state" class="badge">idle</span>
+          </div>
+        </div>
+        <div class="stage">
+          <div id="frame-host" class="frame-host"></div>
+
+          <aside class="qr-card" id="qr-card">
+            <div class="qr-card-head">
+              <span class="qr-card-title">Scan to play</span>
+              <button
+                id="qr-expand"
+                class="icon-btn"
+                type="button"
+                title="Show the QR code large"
+                aria-label="Show the QR code large"
+              >⤢</button>
+            </div>
+
+            <div id="qr-holder" class="qr-holder">
+              <div class="qr-empty">no code yet</div>
+            </div>
+
+            <div class="budget">
+              <div class="budget-bar" id="budget-bar">
+                <div class="budget-fill" id="budget-fill"></div>
+                <div class="budget-ticks" id="budget-ticks"></div>
+              </div>
+              <div class="budget-legend">
+                <span id="budget-text" class="budget-text">—</span>
+                <span id="budget-pct" class="budget-pct"></span>
+              </div>
+            </div>
+
+            <dl class="qr-stats">
+              <div><dt>Symbol</dt><dd id="stat-symbol">—</dd></div>
+              <div><dt>Minified</dt><dd id="stat-min">—</dd></div>
+              <div><dt>Brotli</dt><dd id="stat-br">—</dd></div>
+              <div><dt>URL</dt><dd id="stat-url">—</dd></div>
+            </dl>
+
+            <p id="scan-note" class="scan-note"></p>
+
+            <div class="qr-actions">
+              <button id="copy-link" class="btn btn-primary" type="button">Copy link</button>
+              <button id="save-png" class="btn" type="button">PNG</button>
+            </div>
+
+            <details class="host-config">
+              <summary>Play URL</summary>
+              <input id="base-url" class="input" type="text" spellcheck="false" />
+              <p class="hint">
+                The QR encodes this prefix plus the game. Shorter is slightly
+                cheaper, but the prefix costs under 1% of the budget.
+              </p>
+            </details>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <div id="lightbox" class="lightbox" hidden>
+      <div class="lightbox-inner">
+        <div id="lightbox-qr" class="lightbox-qr"></div>
+        <p id="lightbox-caption" class="lightbox-caption"></p>
+        <button id="lightbox-close" class="btn" type="button">Close</button>
+      </div>
+    </div>
+
+    <script type="module" src="/src/create/main.js"></script>
+  </body>
+</html>

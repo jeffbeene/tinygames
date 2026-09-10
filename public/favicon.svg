@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="6" fill="#0f131a"/>
+  <g fill="#7c9cff">
+    <!-- three finder patterns, as on a real symbol -->
+    <path d="M5 5h9v9H5V5zm2 2v5h5V7H7z"/>
+    <path d="M18 5h9v9h-9V5zm2 2v5h5V7h-5z"/>
+    <path d="M5 18h9v9H5v-9zm2 2v5h5v-5H7z"/>
+  </g>
+  <g fill="#4ade80">
+    <rect x="18" y="18" width="3" height="3"/>
+    <rect x="24" y="18" width="3" height="3"/>
+    <rect x="21" y="21" width="3" height="3"/>
+    <rect x="18" y="24" width="3" height="3"/>
+    <rect x="24" y="24" width="3" height="3"/>
+  </g>
+</svg>

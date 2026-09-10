@@ -1,0 +1,239 @@
+/*
+ * Play. The game gets the whole viewport; everything else is either transient
+ * (the boot spinner) or hidden behind one corner button.
+ */
+
+:root {
+  color-scheme: dark;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #000;
+  color: #e7ebf3;
+  font: 15px/1.5 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+.stage {
+  position: fixed;
+  inset: 0;
+}
+
+.game-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: #000;
+}
+
+/* ---------------------------------------------------------------- boot --- */
+
+.boot {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+  background: #05070a;
+}
+
+.boot[hidden] { display: none; }
+
+.boot-spinner {
+  width: 26px;
+  height: 26px;
+  border: 2px solid #232b38;
+  border-top-color: #7c9cff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.boot-text {
+  margin: 0;
+  font: 12px var(--mono);
+  color: #5d677c;
+  letter-spacing: 0.08em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boot-spinner { animation-duration: 2.4s; }
+}
+
+/* -------------------------------------------------------- corner button --- */
+
+.menu-open {
+  position: fixed;
+  /* Clear of notches and home indicators on phones. */
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 10;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(10, 13, 19, 0.45);
+  backdrop-filter: blur(6px);
+  color: rgba(255, 255, 255, 0.55);
+  font: italic 600 15px var(--sans);
+  cursor: pointer;
+  /* Deliberately faint: it must never compete with the game. */
+  opacity: 0.5;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.menu-open:hover,
+.menu-open:focus-visible { opacity: 1; background: rgba(10, 13, 19, 0.85); }
+.menu-open[hidden] { display: none; }
+
+/* --------------------------------------------------------------- sheet --- */
+
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(3, 5, 8, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.sheet[hidden] { display: none; }
+
+.sheet-card {
+  width: min(380px, 100%);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #10141b;
+  border: 1px solid #232b38;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+.sheet-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.sheet-sub {
+  margin: 0 0 14px;
+  font: 11.5px/1.6 var(--mono);
+  color: #5d677c;
+}
+
+.sheet-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.sheet-close {
+  margin-top: 12px;
+  background: none;
+  border: 0;
+  color: #5d677c;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.sheet-close:hover { color: #e7ebf3; }
+
+/* ---------------------------------------------------------------- atoms --- */
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 14px;
+  text-align: center;
+  text-decoration: none;
+  color: #e7ebf3;
+  background: #1a212c;
+  border: 1px solid #232b38;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.btn:hover { background: #222b39; }
+
+.btn-primary {
+  background: #7c9cff;
+  border-color: #7c9cff;
+  color: #0a0f1c;
+  font-weight: 600;
+}
+
+.btn-primary:hover { background: #93aeff; }
+
+/* ----------------------------------------------------------------- fail --- */
+
+.fail {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #05070a;
+}
+
+.fail[hidden] { display: none; }
+
+.fail-card {
+  width: min(420px, 100%);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fail-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 650;
+}
+
+.fail-msg {
+  margin: 0 0 8px;
+  color: #8d97ac;
+  font-size: 14px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+/* ---------------------------------------------------------------- crash --- */
+
+.crash {
+  position: fixed;
+  left: 50%;
+  bottom: max(56px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 15;
+  max-width: min(90vw, 460px);
+  padding: 10px 14px;
+  font: 12px/1.5 var(--mono);
+  color: #fecaca;
+  background: rgba(69, 20, 26, 0.94);
+  border: 1px solid #7f1d2b;
+  border-radius: 9px;
+  word-break: break-word;
+}

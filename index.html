@@ -10,7 +10,22 @@
   <body>
     <header class="topbar">
       <div class="brand">
-        <span class="brand-mark">▚</span>
+        <!-- Same mark as public/favicon.svg, recoloured from the theme vars. -->
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="6" fill="var(--panel)" />
+          <g fill="var(--accent)">
+            <path d="M5 5h9v9H5V5zm2 2v5h5V7H7z" />
+            <path d="M18 5h9v9h-9V5zm2 2v5h5V7h-5z" />
+            <path d="M5 18h9v9H5v-9zm2 2v5h5v-5H7z" />
+          </g>
+          <g fill="var(--tier-easy)">
+            <rect x="18" y="18" width="3" height="3" />
+            <rect x="24" y="18" width="3" height="3" />
+            <rect x="21" y="21" width="3" height="3" />
+            <rect x="18" y="24" width="3" height="3" />
+            <rect x="24" y="24" width="3" height="3" />
+          </g>
+        </svg>
         <span class="brand-name">tinygames</span>
       </div>
 
@@ -55,6 +70,18 @@
         <div id="problems" class="problems" hidden></div>
       </section>
 
+      <div
+        id="splitter"
+        class="splitter"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize the editor and preview panes"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        tabindex="0"
+        title="Drag to resize · double-click to reset"
+      ></div>
+
       <section class="pane pane-preview">
         <div class="pane-head">
           <h2 class="pane-title">Preview</h2>
@@ -68,10 +95,13 @@
         </div>
         <div class="stage">
           <div id="frame-host" class="frame-host"></div>
+        </div>
 
-          <aside class="qr-card" id="qr-card">
-            <div class="qr-card-head">
-              <span class="qr-card-title">Scan to play</span>
+        <section class="ship" id="ship">
+          <div class="pane-head ship-head">
+            <h2 class="pane-title">Scan to play</h2>
+            <div class="pane-meta">
+              <span id="scan-note" class="scan-note"></span>
               <button
                 id="qr-expand"
                 class="icon-btn"
@@ -80,46 +110,52 @@
                 aria-label="Show the QR code large"
               >⤢</button>
             </div>
+          </div>
 
-            <div id="qr-holder" class="qr-holder">
+          <div class="ship-body">
+            <div id="qr-holder" class="qr-holder" title="Click to enlarge">
               <div class="qr-empty">no code yet</div>
             </div>
 
-            <div class="budget">
-              <div class="budget-bar" id="budget-bar">
-                <div class="budget-fill" id="budget-fill"></div>
-                <div class="budget-ticks" id="budget-ticks"></div>
+            <div class="ship-readout">
+              <div class="budget">
+                <div class="budget-legend">
+                  <span id="budget-text" class="budget-text">—</span>
+                  <span id="budget-pct" class="budget-pct"></span>
+                </div>
+                <div class="budget-bar" id="budget-bar">
+                  <div class="budget-fill" id="budget-fill"></div>
+                  <div class="budget-ticks" id="budget-ticks"></div>
+                </div>
               </div>
-              <div class="budget-legend">
-                <span id="budget-text" class="budget-text">—</span>
-                <span id="budget-pct" class="budget-pct"></span>
-              </div>
+
+              <dl class="qr-stats">
+                <div><dt>Symbol</dt><dd id="stat-symbol">—</dd></div>
+                <div><dt>Minified</dt><dd id="stat-min">—</dd></div>
+                <div><dt>Brotli</dt><dd id="stat-br">—</dd></div>
+                <div><dt>URL</dt><dd id="stat-url">—</dd></div>
+              </dl>
             </div>
 
-            <dl class="qr-stats">
-              <div><dt>Symbol</dt><dd id="stat-symbol">—</dd></div>
-              <div><dt>Minified</dt><dd id="stat-min">—</dd></div>
-              <div><dt>Brotli</dt><dd id="stat-br">—</dd></div>
-              <div><dt>URL</dt><dd id="stat-url">—</dd></div>
-            </dl>
+            <div class="ship-actions">
+              <div class="qr-actions">
+                <button id="copy-link" class="btn btn-primary" type="button">Copy link</button>
+                <button id="save-png" class="btn" type="button">PNG</button>
+              </div>
 
-            <p id="scan-note" class="scan-note"></p>
-
-            <div class="qr-actions">
-              <button id="copy-link" class="btn btn-primary" type="button">Copy link</button>
-              <button id="save-png" class="btn" type="button">PNG</button>
+              <label class="host-config">
+                <span class="field-label">Play URL</span>
+                <input
+                  id="base-url"
+                  class="input"
+                  type="text"
+                  spellcheck="false"
+                  title="The QR encodes this prefix plus the game. Shorter is slightly cheaper, but the prefix costs under 1% of the budget."
+                />
+              </label>
             </div>
-
-            <details class="host-config">
-              <summary>Play URL</summary>
-              <input id="base-url" class="input" type="text" spellcheck="false" />
-              <p class="hint">
-                The QR encodes this prefix plus the game. Shorter is slightly
-                cheaper, but the prefix costs under 1% of the budget.
-              </p>
-            </details>
-          </aside>
-        </div>
+          </div>
+        </section>
       </section>
     </main>
 

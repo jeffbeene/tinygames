@@ -8,6 +8,7 @@ import CompileWorker from './compile.worker.js?worker'
 
 const DRAFT_KEY = 'tinygames:draft'
 const CAPACITY_KEY = 'tinygames:capacity'
+const SPLIT_KEY = 'tinygames:split'
 const COMPILE_DEBOUNCE = 350
 const PREVIEW_DEBOUNCE = 700
 
@@ -345,6 +346,100 @@ function loadDraft() {
   }
 }
 
+// ------------------------------------------------------------ pane split ---
+
+const workspace = document.querySelector('.workspace')
+const splitter = $('splitter')
+
+// Below these the panes stop being useful rather than merely tight: the editor
+// loses the gutter plus a readable line, and the ship panel's container queries
+// bottom out. They match the minmax() floors in the stylesheet.
+const MIN_EDITOR = 320
+const MIN_PREVIEW = 360
+
+// Kept as a fraction, not pixels, so a resized window keeps the proportions the
+// user chose instead of pinning the editor to the width it happened to have.
+let splitWanted = 0.5
+
+/** @returns {{ total: number, min: number, max: number } | null} null when the
+ *  layout has stacked (or is too narrow to honour both minimums). */
+function splitRange() {
+  const total = workspace.clientWidth - splitter.offsetWidth
+  if (!(total > 0)) return null
+  const min = MIN_EDITOR / total
+  const max = 1 - MIN_PREVIEW / total
+  return min > max ? null : { total, min, max }
+}
+
+// Re-clamps the wanted fraction against the current window without overwriting
+// it: dragging to the stop on a narrow window shouldn't lose the wider layout.
+function layoutSplit() {
+  const range = splitRange()
+  if (!range) return
+  const shown = Math.min(Math.max(splitWanted, range.min), range.max)
+  workspace.style.setProperty('--split', `${(shown * range.total).toFixed(1)}px`)
+  splitter.setAttribute('aria-valuenow', String(Math.round(shown * 100)))
+}
+
+function setSplit(fraction) {
+  const range = splitRange()
+  if (!range) return
+  splitWanted = Math.min(Math.max(fraction, range.min), range.max)
+  layoutSplit()
+  try {
+    localStorage.setItem(SPLIT_KEY, splitWanted.toFixed(4))
+  } catch {
+    /* same story as the draft -- a lost split is not worth failing over */
+  }
+}
+
+splitter.addEventListener('pointerdown', (e) => {
+  if (e.button !== 0) return
+  // Capturing is what makes the drag survive crossing into the preview: the
+  // game iframe is a separate document and would otherwise eat every move.
+  splitter.setPointerCapture(e.pointerId)
+  splitter.dataset.dragging = ''
+  document.body.classList.add('is-resizing')
+  e.preventDefault()
+})
+
+splitter.addEventListener('pointermove', (e) => {
+  if (splitter.dataset.dragging == null) return
+  const range = splitRange()
+  if (!range) return
+  const x = e.clientX - workspace.getBoundingClientRect().left - splitter.offsetWidth / 2
+  setSplit(x / range.total)
+})
+
+// lostpointercapture fires for a normal release, a cancel and a lost capture
+// alike, so it is the one place the drag has to be torn down.
+splitter.addEventListener('lostpointercapture', () => {
+  delete splitter.dataset.dragging
+  document.body.classList.remove('is-resizing')
+})
+
+splitter.addEventListener('dblclick', () => setSplit(0.5))
+
+splitter.addEventListener('keydown', (e) => {
+  const step = e.shiftKey ? 0.05 : 0.01
+  if (e.key === 'ArrowLeft') setSplit(splitWanted - step)
+  else if (e.key === 'ArrowRight') setSplit(splitWanted + step)
+  else return
+  e.preventDefault()
+})
+
+addEventListener('resize', layoutSplit)
+
+function restoreSplit() {
+  try {
+    const stored = Number(localStorage.getItem(SPLIT_KEY))
+    if (stored > 0 && stored < 1) splitWanted = stored
+  } catch {
+    /* storage disabled -- the default split is a fine answer */
+  }
+  layoutSplit()
+}
+
 // ------------------------------------------------------------------ boot ---
 
 const editor = createEditor($('editor'), {
@@ -373,6 +468,8 @@ function load({ source, mode }) {
 }
 
 async function boot() {
+  restoreSplit()
+
   el.examples.replaceChildren(
     Object.assign(document.createElement('option'), { value: '', textContent: 'Load…' }),
     ...EXAMPLES.map((ex) =>
@@ -492,6 +589,7 @@ function openLightbox() {
 }
 
 el.qrExpand.addEventListener('click', openLightbox)
+el.qrHolder.addEventListener('click', openLightbox)
 el.lightboxClose.addEventListener('click', () => (el.lightbox.hidden = true))
 el.lightbox.addEventListener('click', (e) => {
   if (e.target === el.lightbox) el.lightbox.hidden = true

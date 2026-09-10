@@ -26,6 +26,11 @@
 
   --radius: 10px;
   --head-h: 52px;
+
+  /* --qr-base is what the window height allows; --qr-size is what the ship
+     panel actually uses, which a narrow panel trims further. */
+  --qr-base: 124px;
+  --qr-size: var(--qr-base);
 }
 
 * { box-sizing: border-box; }
@@ -65,15 +70,16 @@ body {
 
 .brand {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
   padding-right: 6px;
 }
 
 .brand-mark {
-  color: var(--accent);
-  font-size: 17px;
-  letter-spacing: -2px;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  display: block;
 }
 
 .brand-name {
@@ -177,9 +183,14 @@ body {
 /* ----------------------------------------------------------- workspace --- */
 
 .workspace {
+  /* Width of the editor column. The splitter writes a px value here; the 1fr
+     default is the untouched 50/50 split. The minmax() floors are the same
+     numbers the drag clamps against, so a stale stored value can never wedge a
+     pane shut. */
+  --split: 1fr;
   height: calc(100% - var(--head-h));
   display: grid;
-  grid-template-columns: minmax(320px, 1fr) minmax(360px, 1fr);
+  grid-template-columns: minmax(320px, var(--split)) auto minmax(360px, 1fr);
 }
 
 .pane {
@@ -189,7 +200,36 @@ body {
   min-height: 0;
 }
 
-.pane-editor { border-right: 1px solid var(--line); }
+/*
+ * The divider is its own grid column rather than a border on the editor: the
+ * hit area has to be wider than the 1px rule people actually see, so the
+ * transparent inline borders pad it out and background-clip paints only the
+ * middle strip.
+ */
+.splitter {
+  width: 7px;
+  cursor: col-resize;
+  background: var(--line);
+  background-clip: content-box;
+  border-inline: 3px solid transparent;
+  touch-action: none;
+  transition: background-color 120ms ease;
+}
+
+.splitter:hover,
+.splitter:focus-visible,
+.splitter[data-dragging] {
+  background: var(--accent);
+  /* Thickens the visible rule without moving the column. */
+  border-inline-width: 2px;
+  outline: none;
+}
+
+/* Held on <body> for the length of a drag: without it the pointer keeps
+   selecting text and flickering the I-beam over whatever it crosses, and the
+   preview iframe would react to a pointer that is only passing through. */
+body.is-resizing { cursor: col-resize; user-select: none; }
+body.is-resizing .frame-host { pointer-events: none; }
 
 .pane-head {
   display: flex;
@@ -282,45 +322,76 @@ body {
   background: #000;
 }
 
-/* ------------------------------------------------------------- qr card --- */
+/* ---------------------------------------------------------- ship panel --- */
 
-.qr-card {
-  position: absolute;
-  right: 14px;
-  bottom: 14px;
-  width: 252px;
-  padding: 12px;
+/*
+ * This readout used to float over the stage as a narrow card. Giving it its
+ * own strip under the preview leaves the stage a clean landscape rectangle
+ * (which is the shape most of these games are designed against) and lets the
+ * numbers spread sideways instead of stacking into a column.
+ *
+ * Widths here follow the panel, not the window: the workspace split means the
+ * preview pane can be half the viewport, so a container query is the honest
+ * measure.
+ */
+.ship {
+  flex: none;
   display: flex;
   flex-direction: column;
-  gap: 11px;
-  background: rgba(15, 19, 26, 0.93);
-  backdrop-filter: blur(14px);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.55);
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  container-type: inline-size;
 }
 
-.qr-card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.ship-head {
+  background: var(--panel-2);
+  border-bottom-color: var(--line);
 }
 
-.qr-card-title {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: var(--fg-faint);
+.ship-body {
+  display: grid;
+  grid-template-columns: var(--qr-size) minmax(0, 1fr) minmax(150px, 196px);
+  gap: 14px;
+  padding: 13px 14px;
 }
+
+/* --------------------------------------------------------------- symbol --- */
 
 .qr-holder {
-  aspect-ratio: 1;
+  width: var(--qr-size);
+  height: var(--qr-size);
+  /* The readout can outgrow the symbol on a short window; stay centred on it. */
+  align-self: center;
   display: grid;
   place-items: center;
   background: #fff;
-  border-radius: 8px;
+  border-radius: 9px;
   overflow: hidden;
+  cursor: zoom-in;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.09), 0 8px 20px rgba(0, 0, 0, 0.45);
+  transition: box-shadow 0.14s;
+}
+
+.qr-holder:hover {
+  box-shadow: 0 0 0 1px var(--accent), 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+
+/*
+ * Nothing to enlarge before the first successful build, or past the budget --
+ * and an empty white plate is just a bright hole in the panel, so the
+ * placeholder states drop it.
+ */
+.qr-holder:not(:has(.qr-canvas)),
+.qr-holder:not(:has(.qr-canvas)):hover {
+  cursor: default;
+  background: var(--panel-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.qr-holder:has(.qr-over),
+.qr-holder:has(.qr-over):hover {
+  background: rgba(248, 113, 113, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.34);
 }
 
 .qr-canvas {
@@ -333,23 +404,51 @@ body {
 
 .qr-empty,
 .qr-over {
-  color: #7c8698;
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.4;
   text-align: center;
-  padding: 16px;
+  padding: 10px;
+  color: var(--fg-faint);
 }
 
-.qr-over { color: #b4232f; font-weight: 600; }
+.qr-over { color: var(--tier-over); font-weight: 600; }
 
-/* -------------------------------------------------------------- budget --- */
+/* -------------------------------------------------------------- readout --- */
 
-.budget { display: flex; flex-direction: column; gap: 5px; }
+/* Centred rather than spread: at four-across the stats are short enough that
+   space-between strands them at the bottom of the symbol. */
+.ship-readout {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.budget { display: flex; flex-direction: column; gap: 6px; }
+
+.budget-legend {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font: 12px var(--mono);
+  color: var(--fg-dim);
+}
+
+.budget-pct {
+  flex: none;
+  color: var(--fg);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
 
 .budget-bar {
   position: relative;
-  height: 7px;
+  height: 8px;
   border-radius: 4px;
   background: #1c2431;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
   overflow: hidden;
 }
 
@@ -376,46 +475,40 @@ body {
   background: rgba(255, 255, 255, 0.28);
 }
 
-.budget-legend {
-  display: flex;
-  justify-content: space-between;
-  font: 11px var(--mono);
-  color: var(--fg-dim);
-}
-
-.budget-pct { color: var(--fg-faint); }
-
-/* --------------------------------------------------------------- stats --- */
+/* ---------------------------------------------------------------- stats --- */
 
 .qr-stats {
   margin: 0;
   display: grid;
-  gap: 3px;
-  font: 11px var(--mono);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 18px;
 }
 
 .qr-stats > div {
   display: flex;
-  justify-content: space-between;
-  gap: 10px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
-.qr-stats dt { color: var(--fg-faint); }
+.qr-stats dt {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-faint);
+}
 
 .qr-stats dd {
   margin: 0;
+  font: 11px var(--mono);
   color: var(--fg-dim);
-  text-align: right;
-  display: flex;
-  gap: 6px;
-  align-items: baseline;
-  justify-content: flex-end;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .scan-note {
-  margin: -3px 0 0;
   font: 11px var(--mono);
-  text-align: center;
   color: var(--fg-faint);
 }
 
@@ -425,38 +518,76 @@ body {
 .scan-note[data-tier='max'] { color: var(--tier-max); }
 .scan-note[data-tier='over'] { color: var(--tier-over); }
 
-.qr-actions { display: flex; gap: 7px; }
-.qr-actions .btn { flex: 1; }
+/* -------------------------------------------------------------- actions --- */
+
+.ship-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.qr-actions { display: flex; gap: 8px; }
+.qr-actions .btn { flex: 1; padding: 7px 9px; }
 .qr-actions .btn-primary { flex: 2; }
 
-/* --------------------------------------------------------- host config --- */
-
 .host-config {
-  border-top: 1px solid var(--line-soft);
-  padding-top: 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
 }
-
-.host-config summary {
-  cursor: pointer;
-  font-size: 11px;
-  color: var(--fg-faint);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-}
-
-.host-config summary::marker { color: var(--line); }
 
 .input {
   width: 100%;
-  margin-top: 8px;
   font: 11px var(--mono);
+  padding: 5px 8px;
+  color: var(--fg-dim);
 }
 
-.hint {
-  margin: 7px 0 0;
-  font-size: 11px;
-  line-height: 1.45;
-  color: var(--fg-faint);
+.input:focus {
+  color: var(--fg);
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* ------------------------------------------------- ship panel, by width --- */
+
+/* Wide enough that the four stats read better as one row than as a block. */
+@container (min-width: 900px) {
+  .qr-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/*
+ * Below this the three columns start eating each other -- the byte counts are
+ * the first thing to lose, and an elided "1,350 B from 2,58…" is worse than a
+ * taller panel. So the actions drop to their own row and the symbol shrinks to
+ * pay for the height.
+ */
+@container (max-width: 620px) {
+  .ship { --qr-size: min(104px, var(--qr-base)); }
+
+  .ship-body { grid-template-columns: var(--qr-size) minmax(0, 1fr); }
+
+  .ship-actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 14px;
+  }
+
+  .qr-actions { flex: none; width: 196px; }
+
+  /* Label beside the input, not above it: the extra row is pure height here. */
+  .host-config {
+    flex: 1;
+    flex-direction: row;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .host-config .field-label { flex: none; }
 }
 
 /* ------------------------------------------------------------ lightbox --- */
@@ -499,7 +630,19 @@ body {
 /* ------------------------------------------------------------ narrower --- */
 
 @media (max-width: 900px) {
-  .workspace { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
-  .pane-editor { border-right: 0; border-bottom: 1px solid var(--line); }
-  .qr-card { width: 210px; }
+  /* Stacked, the preview pane pays for the ship panel out of the stage, so it
+     takes the larger share of the split. */
+  .workspace {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1.3fr);
+  }
+  /* Stacked, there is nothing to drag: the split is vertical and driven by the
+     rows above, so the divider goes back to being a plain border. */
+  .splitter { display: none; }
+  .pane-editor { border-bottom: 1px solid var(--line); }
 }
+
+/* The ship panel eats fixed height, so on a short window it gives some back
+   rather than squeezing the stage the preview actually needs. */
+@media (max-height: 820px) { :root { --qr-base: 108px; } }
+@media (max-height: 700px) { :root { --qr-base: 94px; } }

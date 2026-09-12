@@ -159,7 +159,7 @@ await page.screenshot({ path: shot('01-create') })
 console.log('\n=== Examples ===')
 const seen = {}
 
-for (const id of ['starter', 'snake', 'jumper', 'reaction']) {
+for (const id of ['starter', 'snake', 'doom', 'city', 'reaction']) {
   await page.selectOption('#examples', id)
   await settle(page, '#budget-pct')
   await page.waitForTimeout(700)
@@ -167,7 +167,7 @@ for (const id of ['starter', 'snake', 'jumper', 'reaction']) {
   const card = await readCard()
 
   // These games are waiting for a player: Snake holds still until the first
-  // steer, and Jumper's death screen is deliberately static. Drive them.
+  // steer. Drive them.
   const box = await page.locator('.game-frame').boundingBox()
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
   await page.mouse.down()

@@ -44,6 +44,20 @@
             <option value="1">Bare page</option>
           </select>
         </label>
+
+        <button
+          id="help-open"
+          class="icon-btn help-btn"
+          type="button"
+          title="What this is, and how the runtimes work"
+          aria-label="What this is, and how the runtimes work"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 11.2v5" />
+            <path d="M12 7.7h.01" />
+          </svg>
+        </button>
       </div>
 
       <div class="topbar-spacer"></div>
@@ -158,6 +172,250 @@
         </section>
       </section>
     </main>
+
+    <div id="help" class="modal" hidden>
+      <div
+        class="modal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="help-title"
+        tabindex="-1"
+      >
+        <header class="modal-head">
+          <h2 class="modal-title" id="help-title">tinygames</h2>
+          <button id="help-close" class="icon-btn" type="button" aria-label="Close">✕</button>
+        </header>
+
+        <div class="modal-body doc">
+          <p class="lede">
+            An editor for JavaScript games small enough to fit
+            <strong>entirely inside a QR code</strong>. No server, no database,
+            no game IDs — the QR code <em>is</em> the game.
+          </p>
+
+          <p>
+            Everything you type is minified, compressed, and packed into the
+            fragment of a <code>/play/</code> link, which is what the code
+            encodes. Scanning it decodes the game and runs it. Nothing is ever
+            uploaded: the payload rides after the <code>#</code>, so it never
+            reaches a server at all.
+          </p>
+
+          <p>
+            The largest QR symbol carries about <strong>2.8 KB</strong> of
+            compressed output — roughly 35–40 KB of readable JavaScript, which is
+            a lot more game than it sounds. The bar under the code shows what you
+            have spent, marked at the points where the symbol gets harder to
+            scan. Big codes read fine off a monitor and badly off a print, so
+            keep it in the green if you plan to put it on paper.
+          </p>
+
+          <h3>Runtimes</h3>
+
+          <p>
+            Both runtimes execute your game in an iframe sandboxed
+            <em>without</em> <code>allow-same-origin</code>: it gets an opaque
+            origin, cannot touch this page, and <code>localStorage</code> throws
+            inside it. Code that arrives from a stranger&rsquo;s QR code is
+            untrusted by definition. Your choice is recorded in the payload, so a
+            scanned game always boots the shell it was written against.
+          </p>
+
+          <dl class="def">
+            <dt>Canvas harness <span class="pill">default</span></dt>
+            <dd>
+              A full-bleed canvas, retina scaling, resize handling, an input map
+              and the frame loop are already set up. They live on the play page
+              rather than in the code, so they cost you no budget at all. Pick
+              this for anything that draws.
+            </dd>
+
+            <dt>Bare page</dt>
+            <dd>
+              An empty document and nothing else — no canvas, no loop, no
+              globals. The right choice when a game is DOM- or CSS-shaped. You
+              write your own boilerplate, which costs 150–250 bytes of budget.
+            </dd>
+          </dl>
+
+          <h3>Canvas harness reference</h3>
+
+          <p>
+            Your code runs as a plain, non-strict script in the page&rsquo;s
+            global scope, which is why bare assignment
+            (<code>draw = () =&gt; {}</code>) is how you hook into it.
+          </p>
+
+          <h4>Entry points</h4>
+
+          <table>
+            <tbody>
+              <tr>
+                <td><code>setup()</code></td>
+                <td>Runs once, after the canvas has real dimensions.</td>
+              </tr>
+              <tr>
+                <td><code>draw()</code></td>
+                <td>Runs every frame, in step with the display.</td>
+              </tr>
+              <tr>
+                <td><code>resized()</code></td>
+                <td>Runs whenever the canvas changes size.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            All three are optional, and all three are pinned against the
+            minifier — no other top-level name you invent will survive the build
+            under its own spelling.
+          </p>
+
+          <pre><code>let x, y
+
+setup = () =&gt; { x = W / 2; y = H / 2 }
+
+draw = () =&gt; {
+  clear('#0b0f16')
+  x += (M.x - x) * 3 * dt
+  y += (M.y - y) * 3 * dt
+  c.fillStyle = '#7c9cff'
+  c.beginPath()
+  c.arc(x, y, 12 + sin(T * 6) * 3, 0, TAU)
+  c.fill()
+}</code></pre>
+
+          <h4>Canvas</h4>
+
+          <table>
+            <tbody>
+              <tr>
+                <td><code>c</code></td>
+                <td>
+                  The 2D context, already scaled so you draw in CSS pixels and
+                  still get crisp edges on a retina screen.
+                </td>
+              </tr>
+              <tr>
+                <td><code>W</code>, <code>H</code></td>
+                <td>Canvas width and height, in CSS pixels.</td>
+              </tr>
+              <tr>
+                <td><code>clear(color)</code></td>
+                <td>
+                  Fills the whole canvas with <code>color</code>, or erases it
+                  when you pass nothing.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h4>Time</h4>
+
+          <table>
+            <tbody>
+              <tr><td><code>T</code></td><td>Seconds since the game started.</td></tr>
+              <tr>
+                <td><code>dt</code></td>
+                <td>
+                  Seconds since the previous frame, clamped to 0.1 so a
+                  backgrounded tab does not teleport everything on return.
+                  Multiply speeds by it.
+                </td>
+              </tr>
+              <tr><td><code>F</code></td><td>Frames drawn so far.</td></tr>
+            </tbody>
+          </table>
+
+          <h4>Input</h4>
+
+          <table>
+            <tbody>
+              <tr>
+                <td><code>K</code></td>
+                <td>
+                  Keys currently held. Both spellings are populated, so
+                  <code>K.ArrowLeft</code>, <code>K.a</code> and
+                  <code>K.Space</code> all read true while down.
+                </td>
+              </tr>
+              <tr>
+                <td><code>M</code></td>
+                <td>
+                  Pointer, mouse and touch alike: <code>M.x</code> and
+                  <code>M.y</code> in canvas coordinates, <code>M.down</code>,
+                  plus <code>M.px</code>, <code>M.py</code> for where it was.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            Presses are <strong>latched for one frame</strong>: a key or tap
+            pressed and released between two frames is still visible to the next
+            <code>draw()</code>, so fast taps are never silently dropped.
+          </p>
+
+          <h4>Sound and numbers</h4>
+
+          <table>
+            <tbody>
+              <tr>
+                <td><code>snd(freq, secs, type, gain)</code></td>
+                <td>
+                  One short tone, enough for blips and thuds. Defaults are
+                  <code>440</code>, <code>0.08</code>, <code>'square'</code> and
+                  <code>0.2</code>; <code>type</code> takes any oscillator shape.
+                  Browsers only allow audio after a gesture, so sound starts once
+                  the player has touched something.
+                </td>
+              </tr>
+              <tr>
+                <td><code>rnd(n)</code></td>
+                <td>Random float from 0 up to <code>n</code>, which defaults to 1.</td>
+              </tr>
+              <tr>
+                <td class="wrap">
+                  <code>sin</code> <code>cos</code> <code>tan</code>
+                  <code>atan2</code> <code>abs</code> <code>min</code>
+                  <code>max</code> <code>floor</code> <code>ceil</code>
+                  <code>round</code> <code>sqrt</code> <code>hypot</code>
+                  <code>pow</code> <code>sign</code> <code>random</code>
+                  <code>PI</code> <code>TAU</code>
+                </td>
+                <td><code>Math</code> without the prefix. Pure budget savings.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h4>The one real gotcha</h4>
+
+          <p>
+            <strong>
+              Read <code>W</code> and <code>H</code> inside <code>setup()</code>,
+              never at the top level.
+            </strong>
+            Top-level code runs while the document is still parsing, before the
+            canvas necessarily has a size. <code>setup()</code> is deliberately
+            held back until the canvas has real dimensions, and
+            <code>resized()</code> fires on every change after that.
+          </p>
+
+          <pre><code>let cell
+setup = () =&gt; { cell = W / 20 }   // correct
+// let cell = W / 20              // wrong: W may still be 0</code></pre>
+
+          <h4>While you work</h4>
+
+          <p>
+            The preview runs your <em>source</em> by default; switch it to
+            <em>run shipped</em> to execute the exact minified code the QR code
+            carries. <kbd>Ctrl</kbd> + <kbd>Enter</kbd> re-runs it. Load an
+            example from the picker to see all of this in use.
+          </p>
+        </div>
+      </div>
+    </div>
 
     <div id="lightbox" class="lightbox" hidden>
       <div class="lightbox-inner">

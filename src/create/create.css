@@ -627,6 +627,216 @@ body.is-resizing .frame-host { pointer-events: none; }
   color: var(--fg-dim);
 }
 
+/* --------------------------------------------------------------- modal --- */
+
+.help-btn {
+  display: inline-flex;
+  padding: 3px;
+}
+
+.help-btn svg {
+  width: 17px;
+  height: 17px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  /* An auto row grows to fit its content, which would leave the card taller
+     than the window and nothing to scroll. A bounded row is what makes
+     max-height on the card -- and therefore the scrolling body -- mean anything. */
+  grid-template-rows: minmax(0, 1fr);
+  place-items: center;
+  padding: 24px;
+  background: rgba(4, 6, 10, 0.86);
+  backdrop-filter: blur(6px);
+}
+
+.modal[hidden] { display: none; }
+
+.modal-card {
+  display: flex;
+  flex-direction: column;
+  width: min(720px, 100%);
+  max-height: 100%;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  outline: none;
+}
+
+.modal-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.modal-body {
+  overflow-y: auto;
+  /* Contained, or a flick past the end of the text scrolls the editor behind. */
+  overscroll-behavior: contain;
+  padding: 2px 22px 26px;
+  scrollbar-color: var(--line) transparent;
+}
+
+/* ----------------------------------------------------------------- doc --- */
+
+.doc { color: var(--fg-dim); }
+
+.doc p { margin: 11px 0; }
+.doc strong { color: var(--fg); font-weight: 600; }
+.doc em { color: var(--fg); }
+
+.doc .lede {
+  margin-top: 18px;
+  color: var(--fg);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.doc h3 {
+  margin: 28px 0 10px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line-soft);
+  color: var(--fg);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.doc h4 {
+  margin: 22px 0 6px;
+  color: var(--fg-faint);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.doc code {
+  font: 12px/1.45 var(--mono);
+  color: var(--fg);
+  background: var(--raised);
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  padding: 1px 4px;
+  white-space: nowrap;
+}
+
+.doc pre {
+  margin: 12px 0;
+  padding: 12px 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.doc pre code {
+  padding: 0;
+  border: 0;
+  background: none;
+  white-space: pre;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.doc table {
+  width: 100%;
+  margin: 8px 0 4px;
+  border-collapse: collapse;
+}
+
+.doc td {
+  padding: 8px 0;
+  border-top: 1px solid var(--line-soft);
+  vertical-align: top;
+}
+
+.doc tr:first-child td { border-top: 0; }
+
+/* The name column is as narrow as its content allows, so the prose next to it
+   gets the rest -- except the Math row, which is a list and has to wrap. */
+.doc td:first-child {
+  width: 1%;
+  padding-right: 16px;
+  white-space: nowrap;
+}
+
+.doc td.wrap {
+  width: 38%;
+  white-space: normal;
+  line-height: 2;
+}
+
+.doc .def { margin: 14px 0 0; }
+
+.doc .def dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.doc .def dd {
+  margin: 6px 0 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--line);
+}
+
+.doc .pill {
+  font: 10px/1 var(--mono);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-radius: 20px;
+  padding: 3px 7px;
+}
+
+.doc kbd {
+  font: 11px var(--mono);
+  color: var(--fg);
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  padding: 2px 5px;
+}
+
+/* A phone has no room for a floating card, so the sheet takes the screen. */
+@media (max-width: 640px) {
+  .modal { padding: 0; }
+  .modal-card {
+    height: 100%;
+    border: 0;
+    border-radius: 0;
+  }
+  .modal-body { padding: 2px 16px 24px; }
+  .doc td:first-child { white-space: normal; }
+}
+
 /* ------------------------------------------------------------ narrower --- */
 
 @media (max-width: 900px) {

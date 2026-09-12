@@ -25,7 +25,9 @@ npm run check:e2e        # drives a real browser; decodes the QR image with jsQR
 A version-40 QR code at error-correction level L holds **4296 alphanumeric
 characters**. After the URL prefix, that leaves roughly **2834 bytes** of Brotli
 output — about **35–40 KB of readable JavaScript**, or ~18 copies of the bundled
-Snake example. The examples land between 9% and 26% of budget.
+Snake example. The examples land between 9% and 70% of budget, except the
+Neon City raycaster, which fills it on purpose: an endless procedural city at
+99.5% of a v40 code.
 
 The budget bar is marked with the points where the symbol gets harder to scan:
 

@@ -11,7 +11,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "check:pipeline": "node scripts/pipeline-check.mjs",
-    "check:e2e": "node scripts/e2e.mjs"
+    "check:e2e": "node scripts/e2e.mjs",
+    "check:headers": "npm run build && node scripts/check-headers.mjs"
   },
   "devDependencies": {
     "jsqr": "^1.4.0",

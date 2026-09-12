@@ -43,6 +43,9 @@ const el = {
   lightboxQr: $('lightbox-qr'),
   lightboxCaption: $('lightbox-caption'),
   lightboxClose: $('lightbox-close'),
+  helpOpen: $('help-open'),
+  help: $('help'),
+  helpClose: $('help-close'),
 }
 
 // ---------------------------------------------------------------- worker ---
@@ -594,8 +597,31 @@ el.lightboxClose.addEventListener('click', () => (el.lightbox.hidden = true))
 el.lightbox.addEventListener('click', (e) => {
   if (e.target === el.lightbox) el.lightbox.hidden = true
 })
+
+function openHelp() {
+  el.help.hidden = false
+  el.help.querySelector('.modal-body').scrollTop = 0
+  // The card takes focus so PageDown and Escape reach the dialog rather than
+  // the editor, which is still sitting behind it and still focusable.
+  el.help.querySelector('.modal-card').focus()
+}
+
+function closeHelp() {
+  if (el.help.hidden) return
+  el.help.hidden = true
+  el.helpOpen.focus()
+}
+
+el.helpOpen.addEventListener('click', openHelp)
+el.helpClose.addEventListener('click', closeHelp)
+el.help.addEventListener('click', (e) => {
+  if (e.target === el.help) closeHelp()
+})
+
 addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') el.lightbox.hidden = true
+  if (e.key !== 'Escape') return
+  el.lightbox.hidden = true
+  closeHelp()
 })
 
 function flash(button, text) {

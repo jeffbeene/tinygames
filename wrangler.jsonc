@@ -1,0 +1,22 @@
+// Deploy config for `wrangler deploy` (Cloudflare Workers static assets).
+//
+// This file must exist even though every value in it is a default-looking one.
+// Without a wrangler config, `wrangler deploy` falls back to auto-detection,
+// which parses vite.config.js looking for @cloudflare/vite-plugin and dies with
+// "Error parsing file" -- this is not a Workers-plugin project, it is a plain
+// static build. An explicit config skips detection entirely.
+//
+// `not_found_handling` is what routes unmatched paths to public/404.html. Note
+// that it must stay "404-page" and never "single-page-application": a missing
+// asset must 404, not silently render the editor.
+//
+// public/_headers still applies -- Workers static assets parses it the same way
+// Pages does, and does not serve it. That is what ships the CSP.
+{
+  "name": "tinygames",
+  "compatibility_date": "2026-09-11",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}

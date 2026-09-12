@@ -1,6 +1,6 @@
 /*
- * Play. The game gets the whole viewport; everything else is either transient
- * (the boot spinner) or hidden behind one corner button.
+ * Play. The game gets the whole viewport once the welcome gate is dismissed;
+ * everything else hides behind one corner button.
  */
 
 :root {
@@ -35,40 +35,108 @@ html, body {
   background: #000;
 }
 
-/* ---------------------------------------------------------------- boot --- */
+/* ---------------------------------------------------------------- gate --- */
 
-.boot {
+/*
+ * The welcome gate. Deliberately the first paint: the fragment is a stranger's
+ * code, so nothing from it reaches the screen before someone asks for it.
+ */
+
+.gate {
   position: fixed;
   inset: 0;
+  z-index: 25;
   display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: 16px;
+  place-items: center;
+  padding: 24px;
   background: #05070a;
 }
 
-.boot[hidden] { display: none; }
+.gate[hidden] { display: none; }
 
-.boot-spinner {
-  width: 26px;
-  height: 26px;
+.gate-card {
+  width: min(360px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.gate-mark {
+  width: 44px;
+  height: 44px;
+  margin-bottom: 2px;
+}
+
+.gate-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.gate-lede {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: #b6bfd0;
+  text-wrap: balance;
+}
+
+.gate-note {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #6d778c;
+  text-wrap: balance;
+}
+
+/* Full width, matching the sheet's buttons: an easy thumb target, and the only
+   thing on the screen worth pressing. */
+.gate-go {
+  margin-top: 10px;
+  padding: 11px 26px;
+  font-size: 15px;
+}
+
+.gate-go:disabled {
+  background: #1a212c;
+  border-color: #232b38;
+  color: #5d677c;
+  cursor: default;
+}
+
+/* The stat line: "decoding…" while the wasm loads, then what the code actually
+   carried, which is the gate's whole argument for being worth reading. */
+.gate-meta {
+  margin: 0;
+  min-height: 2.6em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font: 11px/1.6 var(--mono);
+  color: #4e5768;
+  letter-spacing: 0.04em;
+}
+
+.gate-spinner {
+  width: 11px;
+  height: 11px;
+  flex: none;
   border: 2px solid #232b38;
   border-top-color: #7c9cff;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
 
+.gate-meta.is-ready .gate-spinner { display: none; }
+
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.boot-text {
-  margin: 0;
-  font: 12px var(--mono);
-  color: #5d677c;
-  letter-spacing: 0.08em;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .boot-spinner { animation-duration: 2.4s; }
+  .gate-spinner { animation-duration: 2.4s; }
 }
 
 /* -------------------------------------------------------- corner button --- */

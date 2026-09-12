@@ -14,9 +14,50 @@
   <body>
     <div id="stage" class="stage"></div>
 
-    <div id="boot" class="boot">
-      <div class="boot-spinner" aria-hidden="true"></div>
-      <p class="boot-text">decoding…</p>
+    <!--
+      The gate. Nothing from the fragment runs until it is dismissed, so a
+      scanned code can never paint on this domain unannounced. It is the first
+      paint rather than something shown after decoding, so the wait for the
+      Brotli wasm happens while the visitor is reading.
+    -->
+    <div id="gate" class="gate">
+      <div class="gate-card">
+        <!-- Same mark as public/favicon.svg. -->
+        <svg class="gate-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="6" fill="#10141b" />
+          <g fill="#7c9cff">
+            <path d="M5 5h9v9H5V5zm2 2v5h5V7H7z" />
+            <path d="M18 5h9v9h-9V5zm2 2v5h5V7h-5z" />
+            <path d="M5 18h9v9H5v-9zm2 2v5h5v-5H7z" />
+          </g>
+          <g fill="#6ee7b7">
+            <rect x="18" y="18" width="3" height="3" />
+            <rect x="24" y="18" width="3" height="3" />
+            <rect x="21" y="21" width="3" height="3" />
+            <rect x="18" y="24" width="3" height="3" />
+            <rect x="24" y="24" width="3" height="3" />
+          </g>
+        </svg>
+
+        <h1 class="gate-title">Welcome to tinygames</h1>
+
+        <p class="gate-lede">
+          Everything you're about to play fits inside the QR code you scanned —
+          a few hundred bytes of JavaScript, no download, no server.
+        </p>
+
+        <p class="gate-note">
+          Anyone can make one, so this game isn't mine and I haven't seen it. It
+          runs sandboxed, walled off from the rest of the page. — Jeff Beene
+        </p>
+
+        <button id="gate-go" class="btn btn-primary gate-go" type="button" disabled>Launch</button>
+
+        <p class="gate-meta" id="gate-meta">
+          <span class="gate-spinner" aria-hidden="true"></span>
+          <span id="gate-status">decoding…</span>
+        </p>
+      </div>
     </div>
 
     <button

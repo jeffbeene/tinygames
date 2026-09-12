@@ -105,6 +105,23 @@ async function canvasFit(p) {
 
 const sameBox = (a, b) => a && b && a[0] === b[0] && a[1] === b[1]
 
+/**
+ * Play gates every game behind a welcome screen, so nothing from the fragment
+ * runs until it is dismissed. Every Play navigation has to go through here.
+ */
+async function launchPlay(p) {
+  await p.waitForSelector('#gate-go:not([disabled])', { timeout: 30000 })
+  const before = await p.evaluate(() => ({
+    gate: !document.getElementById('gate').hidden,
+    frame: !!document.querySelector('.game-frame'),
+    status: document.getElementById('gate-status')?.textContent ?? '',
+    text: document.querySelector('.gate-card')?.innerText ?? '',
+  }))
+  await p.click('#gate-go')
+  await p.waitForTimeout(600)
+  return before
+}
+
 /** Does the game frame paint, and does what it paints change over time? */
 async function frameActivity(p, ms = 700) {
   const target = p.frames().find((f) => f !== p.mainFrame())
@@ -298,7 +315,8 @@ check('create: setup() saw the real canvas size',
 const probeUrl = (await decodeQr(page)).text
 const probe = await ctx.newPage()
 await probe.goto(probeUrl, { waitUntil: 'networkidle' })
-await probe.waitForTimeout(2200)
+await launchPlay(probe)
+await probe.waitForTimeout(1800)
 const playSizing = await frameEval(probe, () => ({
   setup: window.__setup, draw: window.__draw, inner: [innerWidth, innerHeight],
 }))
@@ -340,17 +358,24 @@ await page.screenshot({ path: shot('06-create-final') })
 console.log('\n=== Play page ===')
 const play = await ctx.newPage()
 await play.goto(shareUrl, { waitUntil: 'networkidle' })
-await play.waitForTimeout(3000)
+
+const gated = await launchPlay(play)
+check('gate shown before anything runs', gated.gate === true && gated.frame === false,
+  JSON.stringify({ gate: gated.gate, frame: gated.frame }))
+check('gate disclaims the game', /Jeff Beene/.test(gated.text) && /sandbox/i.test(gated.text),
+  gated.text.replace(/\s+/g, ' ').slice(0, 90))
+check('gate reports what the code carried', /bytes in the code/.test(gated.status), gated.status)
+await play.waitForTimeout(2400)
 
 const playState = await play.evaluate(() => ({
-  boot: document.getElementById('boot').hidden,
+  gate: document.getElementById('gate').hidden,
   fail: document.getElementById('fail').hidden,
   menu: !document.getElementById('menu-open').hidden,
   frame: !!document.querySelector('.game-frame'),
   crash: document.querySelector('.crash')?.textContent ?? null,
   sub: document.getElementById('sheet-sub')?.textContent,
 }))
-check('boot overlay cleared', playState.boot === true)
+check('gate dismissed', playState.gate === true)
 check('no failure screen', playState.fail === true)
 check('game frame mounted', playState.frame === true)
 check('no crash banner', playState.crash === null, playState.crash ?? '')

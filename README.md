@@ -9,7 +9,9 @@ Two pages:
   code and byte budget in the corner. Every keystroke is minified (Terser),
   compressed (Brotli, quality 11), encoded, and re-rendered as a QR code.
 - **`/play/#<payload>`** — Play. Where a scanned code lands. Decodes the
-  fragment and runs the game edge to edge.
+  fragment, then holds it behind a one-tap welcome gate — the code is a
+  stranger's, so nothing from it paints until a visitor asks — and runs the
+  game edge to edge.
 
 ```bash
 npm install

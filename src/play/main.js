@@ -1,8 +1,9 @@
 // Play — the page a scanned QR code lands on.
 //
 // Read the fragment, base42-decode it, Brotli-decompress it, and boot the game
-// edge to edge. Everything else stays behind a single unobtrusive corner button:
-// the whole point is that scanning a code makes a game appear.
+// edge to edge behind one welcome gate. Everything else stays behind a single
+// unobtrusive corner button: the whole point is that scanning a code makes a
+// game appear.
 
 import { decode as base42Decode } from '../shared/base42.js'
 import { unpackPayload, RUNTIME_LABEL } from '../shared/format.js'
@@ -11,7 +12,8 @@ import { mountGameFrame, onFrameMessage } from '../shared/frame.js'
 const $ = (id) => document.getElementById(id)
 
 const stage = $('stage')
-const boot = $('boot')
+const gate = $('gate')
+const gateGo = $('gate-go')
 const menuOpen = $('menu-open')
 const sheet = $('sheet')
 
@@ -19,7 +21,7 @@ let game = null
 let frame = null
 
 function fail(title, message) {
-  boot.hidden = true
+  gate.hidden = true
   $('fail-title').textContent = title
   $('fail-msg').textContent = message
   $('fail').hidden = false
@@ -35,6 +37,17 @@ function readPayload() {
 
 function start() {
   frame = mountGameFrame(stage, game).frame
+  // Without this the game has no keyboard until the player thinks to click it,
+  // which after dismissing the gate looks like the game ignoring them.
+  frame.addEventListener('load', () => frame.focus(), { once: true })
+}
+
+/** Dismiss the gate and run the game. Nothing from the fragment executes before this. */
+function launch() {
+  if (!game || gate.hidden) return
+  gate.hidden = true
+  menuOpen.hidden = false
+  start()
 }
 
 async function run() {
@@ -55,7 +68,7 @@ async function run() {
 
   let source
   try {
-    // Loaded only now, so the wasm fetch overlaps with nothing the user is waiting on.
+    // Loaded only now, so the wasm fetch overlaps with the visitor reading the gate.
     const { decompress } = await import('brotli-dec-wasm/web').then(async (m) => {
       await m.default()
       return m
@@ -68,16 +81,22 @@ async function run() {
 
   game = { mode: payload.mode, code: source }
 
-  $('sheet-sub').textContent =
+  const stat =
     `${RUNTIME_LABEL[payload.mode]} · ${new Intl.NumberFormat().format(payload.compressed.length + 1)} ` +
     `bytes in the code · ${new Intl.NumberFormat().format(source.length)} chars of JavaScript`
 
+  $('sheet-sub').textContent = stat
   $('act-remix').href = `/#${text}`
 
-  boot.hidden = true
-  menuOpen.hidden = false
-  start()
+  // The size of what was in the code is the best argument the gate can make, so
+  // it replaces the decoding notice rather than being buried in the menu.
+  $('gate-meta').classList.add('is-ready')
+  $('gate-status').textContent = stat
+  gateGo.disabled = false
+  gateGo.focus()
 }
+
+gateGo.addEventListener('click', launch)
 
 // Games are sandboxed, so a crash cannot take the page with it -- but it should
 // still say what happened rather than sitting on a black rectangle.
@@ -117,7 +136,9 @@ addEventListener('keydown', (e) => {
   if (e.key === 'Escape') sheet.hidden = true
 })
 
-// Re-scanning a different code in the same tab changes only the fragment.
+// Re-scanning a different code in the same tab changes only the fragment. The
+// reload also puts the gate back, which is the point: a new code is a new
+// stranger's game.
 addEventListener('hashchange', () => location.reload())
 
 run()

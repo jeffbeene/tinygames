@@ -807,7 +807,7 @@ export const EXAMPLES = [
   { id: 'starter', name: 'Starter — bouncing ball', mode: RUNTIME_HARNESS, code: STARTER },
   { id: 'snake', name: 'Snake', mode: RUNTIME_HARNESS, code: SNAKE },
   { id: 'doom', name: 'Doom-ish raycaster', mode: RUNTIME_HARNESS, code: DOOM },
-  { id: 'city', name: 'Neon City — endless raycaster', mode: RUNTIME_HARNESS, code: CITY },
+  { id: 'city', name: 'SynthCity', mode: RUNTIME_HARNESS, code: CITY },
   { id: 'reaction', name: 'Reaction test (bare page)', mode: RUNTIME_BARE, code: BARE },
 ]
 

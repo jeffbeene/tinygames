@@ -1,0 +1,42 @@
+<!doctype html>
+<!--
+  Cloudflare Pages serves this for any unmatched path. It is a static file in
+  public/ rather than a Vite entry point because it must not depend on a hashed
+  bundle: a 404 is exactly the situation where asset resolution may be what went
+  wrong. Styles are inline for the same reason, which the CSP's
+  `style-src 'unsafe-inline'` already permits.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>tinygames — not found</title>
+    <style>
+      html, body { height: 100%; margin: 0; }
+      body {
+        display: grid;
+        place-content: center;
+        gap: 0.75rem;
+        padding: 2rem;
+        background: #080a0e;
+        color: #e7ebf3;
+        font: 15px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        text-align: center;
+      }
+      h1 { margin: 0; font-size: 1.25rem; font-weight: 600; }
+      p { margin: 0; color: #8d97ac; }
+      code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      a { color: #7c9cff; }
+    </style>
+  </head>
+  <body>
+    <h1>404 — nothing here</h1>
+    <p>
+      A game lives in its QR code, not on this server, so there is nothing to
+      look up at this address.
+    </p>
+    <p><a href="/">Open the editor</a> to make one.</p>
+  </body>
+</html>

@@ -147,3 +147,31 @@ before looking at the code.
   `brotli-dec-wasm` (208 KB) so the scan-to-play path stays lean.
 - Drafts are kept in `localStorage`, as is the capacity calibration (which costs
   ~500 ms of QR building and depends only on the URL prefix).
+
+## Deploying
+
+The build is a static directory with no server side, so any static host works.
+Cloudflare Pages is what `public/_headers` is written for.
+
+| Pages setting     | Value           |
+| ----------------- | --------------- |
+| Build command     | `npm run build` |
+| Build output      | `dist`          |
+| Root directory    | *(repo root)*   |
+
+`.nvmrc` pins the Node version for the build image; Vite 8 refuses to run on
+anything below 20.19, and Pages otherwise picks a default of its own.
+
+Two things are worth knowing before choosing a domain:
+
+- **The domain length is part of the byte budget.** Every game URL is
+  `https://<host>/play/#<payload>`, so a longer host leaves fewer bytes for the
+  game and pushes QR codes into denser versions. A short custom domain buys real
+  capacity over a `*.pages.dev` subdomain. Nothing needs configuring for this —
+  capacity is calibrated at runtime against the actual prefix — but the same game
+  can be "easy" on one domain and over budget on another.
+- **`public/_headers` is load-bearing, not hardening.** The CSP it sends is what
+  the sandboxed game inherits, and it is the only thing stopping untrusted game
+  code from reaching the network. A host that ignores `_headers` is a host that
+  serves this app without that protection. Verify with `npm run check:headers`,
+  which serves `dist/` under those exact rules and runs the e2e suite against it.

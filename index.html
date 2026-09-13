@@ -30,24 +30,42 @@
       </div>
 
       <div class="topbar-group">
-        <label class="field">
-          <span class="field-label">Example</span>
-          <select id="examples" class="select">
-            <option value="">Load…</option>
-          </select>
-        </label>
+        <!-- Only shown on narrow screens, where the pickers move into a panel. -->
+        <button
+          id="settings-toggle"
+          class="icon-btn topbar-icon settings-toggle"
+          type="button"
+          title="Example and runtime"
+          aria-label="Example and runtime"
+          aria-expanded="false"
+          aria-controls="topbar-settings"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </button>
 
-        <label class="field">
-          <span class="field-label">Runtime</span>
-          <select id="runtime" class="select">
-            <option value="0">Canvas harness</option>
-            <option value="1">Bare page</option>
-          </select>
-        </label>
+        <div id="topbar-settings" class="topbar-settings">
+          <label class="field">
+            <span class="field-label">Example</span>
+            <select id="examples" class="select">
+              <option value="">Load…</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field-label">Runtime</span>
+            <select id="runtime" class="select">
+              <option value="0">Canvas harness</option>
+              <option value="1">Bare page</option>
+            </select>
+          </label>
+        </div>
 
         <button
           id="help-open"
-          class="icon-btn help-btn"
+          class="icon-btn topbar-icon"
           type="button"
           title="What this is, and how the runtimes work"
           aria-label="What this is, and how the runtimes work"
@@ -67,8 +85,28 @@
           <input type="checkbox" id="autorun" checked />
           <span>Auto-run</span>
         </label>
-        <button id="run" class="btn" type="button" title="Re-run the preview (Ctrl+Enter)">Run</button>
-        <button id="stop" class="btn" type="button" title="Stop the running game">Stop</button>
+        <button
+          id="run"
+          class="btn btn-icon"
+          type="button"
+          title="Re-run the preview (Ctrl+Enter)"
+          aria-label="Run"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 5.5v13a.6.6 0 0 0 .9.5l10.2-6.5a.6.6 0 0 0 0-1L8.9 5a.6.6 0 0 0-.9.5z" />
+          </svg>
+        </button>
+        <button
+          id="stop"
+          class="btn btn-icon"
+          type="button"
+          title="Stop the running game"
+          aria-label="Stop"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="6.5" y="6.5" width="11" height="11" rx="1.5" />
+          </svg>
+        </button>
       </div>
     </header>
 

@@ -87,6 +87,17 @@ body {
   letter-spacing: -0.01em;
 }
 
+/* On desktop the pickers sit inline; the wrapper only exists so a narrow
+   screen can lift them out into a panel. */
+.topbar-settings {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-icon.settings-toggle { display: none; }
+.settings-toggle[aria-expanded='true'] { color: var(--fg); background: var(--raised); }
+
 .field {
   display: flex;
   align-items: center;
@@ -128,6 +139,20 @@ body {
 .btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 8px;
+}
+
+.btn-icon svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  fill: currentColor;
 }
 
 .btn-primary {
@@ -629,12 +654,12 @@ body.is-resizing .frame-host { pointer-events: none; }
 
 /* --------------------------------------------------------------- modal --- */
 
-.help-btn {
+.topbar-icon {
   display: inline-flex;
   padding: 3px;
 }
 
-.help-btn svg {
+.topbar-icon svg {
   width: 17px;
   height: 17px;
   display: block;
@@ -642,6 +667,7 @@ body.is-resizing .frame-host { pointer-events: none; }
   stroke: currentColor;
   stroke-width: 1.7;
   stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .modal {
@@ -653,6 +679,10 @@ body.is-resizing .frame-host { pointer-events: none; }
      than the window and nothing to scroll. A bounded row is what makes
      max-height on the card -- and therefore the scrolling body -- mean anything. */
   grid-template-rows: minmax(0, 1fr);
+  /* Same trap sideways: an implicit column is as wide as the longest unbroken
+     line in a code sample, which on a phone pushed the card (and its close
+     button) off the right edge instead of letting the <pre> scroll. */
+  grid-template-columns: minmax(0, 1fr);
   place-items: center;
   padding: 24px;
   background: rgba(4, 6, 10, 0.86);
@@ -691,6 +721,7 @@ body.is-resizing .frame-host { pointer-events: none; }
 }
 
 .modal-body {
+  min-width: 0;
   overflow-y: auto;
   /* Contained, or a flick past the end of the text scrolls the editor behind. */
   overscroll-behavior: contain;
@@ -825,6 +856,45 @@ body.is-resizing .frame-host { pointer-events: none; }
   padding: 2px 5px;
 }
 
+/*
+ * The full top bar needs roughly 780px, so below that the wordmark goes (the
+ * mark stands alone) and the pickers drop into a panel behind the cog. This is
+ * wider than the phone breakpoint on purpose: tablets overflowed too.
+ */
+@media (max-width: 820px) {
+  .topbar {
+    position: relative;
+    gap: 10px;
+    padding: 0 10px;
+  }
+
+  .brand { padding-right: 0; }
+  .brand-name { display: none; }
+  .topbar-group { gap: 8px; }
+
+  .topbar-icon.settings-toggle { display: inline-flex; }
+
+  .topbar-settings {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .topbar:not(.settings-open) .topbar-settings { display: none; }
+
+  .topbar-settings .field { justify-content: space-between; gap: 12px; }
+  .topbar-settings .select { flex: 1; max-width: 240px; }
+}
+
 /* A phone has no room for a floating card, so the sheet takes the screen. */
 @media (max-width: 640px) {
   .modal { padding: 0; }
@@ -834,6 +904,15 @@ body.is-resizing .frame-host { pointer-events: none; }
     border-radius: 0;
   }
   .modal-body { padding: 2px 16px 24px; }
+  /* The sheet covers the whole screen, so this is the only way out on touch
+     (no backdrop to tap, no Escape key). Give it a thumb-sized target. */
+  .modal-head { padding: 6px 6px 6px 16px; }
+  #help-close {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+    color: var(--fg-dim);
+  }
   .doc td:first-child { white-space: normal; }
 }
 

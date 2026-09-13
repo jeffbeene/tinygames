@@ -43,6 +43,7 @@ const el = {
   lightboxQr: $('lightbox-qr'),
   lightboxCaption: $('lightbox-caption'),
   lightboxClose: $('lightbox-close'),
+  settingsToggle: $('settings-toggle'),
   helpOpen: $('help-open'),
   help: $('help'),
   helpClose: $('help-close'),
@@ -618,9 +619,27 @@ el.help.addEventListener('click', (e) => {
   if (e.target === el.help) closeHelp()
 })
 
+// The cog only exists on narrow screens; on desktop the panel is always inline
+// and this state is inert.
+function setSettingsOpen(open) {
+  el.settingsToggle.closest('.topbar').classList.toggle('settings-open', open)
+  el.settingsToggle.setAttribute('aria-expanded', String(open))
+}
+
+el.settingsToggle.addEventListener('click', () => {
+  setSettingsOpen(el.settingsToggle.getAttribute('aria-expanded') !== 'true')
+})
+
+// A tap anywhere outside the bar dismisses the panel. The preview iframe
+// swallows its own pointer events, so a tap on the game leaves it open.
+addEventListener('pointerdown', (e) => {
+  if (!e.target.closest('.topbar')) setSettingsOpen(false)
+})
+
 addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return
   el.lightbox.hidden = true
+  setSettingsOpen(false)
   closeHelp()
 })
 
